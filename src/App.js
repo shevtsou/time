@@ -71,7 +71,7 @@ function format(time) {
 
 class App extends React.Component {
   state = {
-    seconds: 24*3600,
+    seconds: 300,
     target: undefined,
     rate: 0,
     counting: 'normal',
