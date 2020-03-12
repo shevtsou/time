@@ -71,18 +71,22 @@ function format(time) {
 
 class App extends React.Component {
   state = {
-    seconds: 606,
+    seconds: 24*3600,
     target: undefined,
     rate: 0,
     counting: 'normal',
     dead: false,
     luck: false,
+    win: false,
   }
   componentDidMount() {
     let timePass = 0
     setInterval(()=> {
       const { counting, target, seconds} = this.state
       if (counting === 'normal' && timePass >= 1000) {
+        if (this.state.seconds > 24*3600) {
+          this.setState({win: true, counting: 'win'})
+        }
         this.setState((state) => ({seconds: state.seconds - 1}))
         timePass = 0
         if (seconds <= 0) {
@@ -167,11 +171,11 @@ class App extends React.Component {
     return (
       <div style={{backgroundColor: '#f0eedc'}}>
         {!this.state.dead ? <>
-          <Confetti run={this.state.seconds > 24*3600} 
+          <Confetti run={this.state.win} 
           />
           <Wrapper>
             <Indicators>
-              {this.state.seconds > 24*3600 ? (
+              {this.state.win ? (
                 <Title>You are win</Title>
               ) : (
                 <Title>It's just time.</Title>
@@ -183,7 +187,6 @@ class App extends React.Component {
               <TextField
                 id="standard-number"
                 label="RATE"
-                type="number"
                 onKeyDown={this._handleKeyDown}
                 style={{fontSize: "50px"}}
               />
