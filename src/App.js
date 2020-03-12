@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import logo from './logo.svg';
+import React from 'react';
 import './App.css';
 import TextField from '@material-ui/core/TextField';
 import styled from 'styled-components'
+import Confetti from 'react-confetti'
 
 const Wrapper = styled.div`
+  .body {
+    background-color: #f0eedc;
+  }
   display: flex;
   flex-flow: column;
   justify-content: flex-start;
@@ -14,6 +17,9 @@ const Wrapper = styled.div`
   font-weight: 700;
   color: #50535d;
   background-color: #f0eedc;
+  @media (max-width: 425px) {
+    font-size: 60px;
+  }
 `
 const Indicators = styled.div`
   margin-top: 100px;
@@ -32,6 +38,10 @@ const RateInput = styled.div`
 const Title = styled.div`
   margin-bottom: 50px;
   font-size: 40px;
+  @media (max-width: 425px) {
+    margin-bottom: 25px;
+    font-size: 30px;
+  }
 `
 function paddZeros(value, amount) {
   if (value < 0) {
@@ -48,14 +58,12 @@ function paddZeros(value, amount) {
   return value;
 } 
 function format(time) {
-
   const seconds = time % 60
   const minutes = Math.floor(time / 60) % 60;
   const hours = Math.floor(time / 3600) % 24
   const days = Math.floor(time / (3600 * 24)) % (30)
   const months = Math.floor(time / (3600 * 24 * 30)) % (12)
-  // const years = Math.floor(time / (3600 * 24 * 30 * 12))
-  // ${paddZeros(years, 5)}:
+  const years = Math.floor(time / (3600 * 24 * 30 * 12))
   // return `${paddZeros(months, 2)}:${paddZeros(days, 2)}:${paddZeros(hours, 2)}:${paddZeros(minutes, 2)}:${paddZeros(seconds, 2)}`
   return `${paddZeros(hours, 2)}:${paddZeros(minutes, 2)}:${paddZeros(seconds, 2)}`
 }
@@ -63,16 +71,17 @@ function format(time) {
 
 class App extends React.Component {
   state = {
-    seconds: 300,
+    seconds: 606,
     target: undefined,
     rate: 0,
     counting: 'normal',
     dead: false,
+    luck: false,
   }
   componentDidMount() {
     let timePass = 0
     setInterval(()=> {
-      const { counting, target, seconds, rate} = this.state
+      const { counting, target, seconds} = this.state
       if (counting === 'normal' && timePass >= 1000) {
         this.setState((state) => ({seconds: state.seconds - 1}))
         timePass = 0
@@ -103,7 +112,29 @@ class App extends React.Component {
         timePass = 0
       }
       if (counting === 'waiting' && timePass >= 1000) {
-        if (Math.random() > 0.4) {
+        let hardness = 0.5
+        // if (this.state.luck) {
+        //   hardness = 0
+        //   this.setState({luck: false})
+        // }
+        // if (this.state.seconds < 120) {
+        //   hardness = 0.1
+        // } else if (this.state.seconds < 300) {
+        //   hardness = 0.2
+        // } else if (this.state.seconds < 400) {
+        //   hardness = 0.3
+        // } else if (this.state.seconds < 600) {
+        //   hardness = 0.5
+        // } else if (this.state.seconds < 1200) {
+        //   hardness = 0.6
+        // } else if (this.state.seconds < 1800) {
+        //   hardness = 0.7
+        // } else if (this.state.seconds < 2400) {
+        //   hardness = 0.8
+        // } else if (this.state.seconds < 3000) {
+        //   hardness = 0.9
+        // }
+        if (Math.random() > hardness) {
           this.setState((state) => ({counting: 'fastup', target: +state.seconds + 2 * state.rate, rate: 0 }))
         } else {
           this.setState({counting: 'normal', rate: 0})
@@ -115,27 +146,37 @@ class App extends React.Component {
     }, 10)
   }
   _handleKeyDown = (e) => {
+    console.log(e.key)
     if (e.key === 'Enter') {
       const rate = +e.target.value;
-      if (rate + 10 < this.state.seconds) {
+      if (this.state.counting === 'normal' && rate + 10 < this.state.seconds) {
         const target = this.state.seconds - rate;
         const counting = 'fastdown'
         this.setState({
           target,
           counting,
-          rate
+          rate,
+          luck: false,
         })      
       }
     }
   }
 
   render() {
+    
     return (
-      <>
+      <div style={{backgroundColor: '#f0eedc'}}>
         {!this.state.dead ? <>
+          <Confetti run={this.state.seconds > 24*3600} 
+          />
           <Wrapper>
             <Indicators>
-              <Title>It's just time.</Title>
+              {this.state.seconds > 24*3600 ? (
+                <Title>You are win</Title>
+              ) : (
+                <Title>It's just time.</Title>
+              )}
+
               <div>{format(this.state.seconds)}</div>
             </Indicators>
             <RateInput>
@@ -152,7 +193,7 @@ class App extends React.Component {
           Your time is out
         </>}
 
-      </>
+      </div>
     );
 
   }
